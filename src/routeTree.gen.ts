@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppRecordRouteImport } from './routes/app.record'
 
 const AuthRoute = AuthRouteImport.update({
@@ -35,6 +36,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppRecordRoute = AppRecordRouteImport.update({
   id: '/record',
   path: '/record',
@@ -46,12 +52,14 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/record': typeof AppRecordRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app/record': typeof AppRecordRoute
+  '/app/reports': typeof AppReportsRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -60,14 +68,22 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/record': typeof AppRecordRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/auth' | '/app/record' | '/app/'
+  fullPaths: '/' | '/app' | '/auth' | '/app/record' | '/app/reports' | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app/record' | '/app'
-  id: '__root__' | '/' | '/app' | '/auth' | '/app/record' | '/app/'
+  to: '/' | '/auth' | '/app/record' | '/app/reports' | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/app/record'
+    | '/app/reports'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/record': {
       id: '/app/record'
       path: '/record'
@@ -118,11 +141,13 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppRecordRoute: typeof AppRecordRoute
+  AppReportsRoute: typeof AppReportsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppRecordRoute: AppRecordRoute,
+  AppReportsRoute: AppReportsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
