@@ -14,16 +14,426 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      business_members: {
+        Row: {
+          business_id: string
+          id: string
+          invited_at: string
+          role: Database["public"]["Enums"]["member_role"]
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["member_role"]
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_members_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      businesses: {
+        Row: {
+          created_at: string
+          id: string
+          invite_code: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          business_id: string
+          category: string | null
+          cost_price: number
+          created_at: string
+          current_stock: number
+          id: string
+          low_stock_threshold: number
+          name: string
+          sale_price: number
+          unit: string
+        }
+        Insert: {
+          business_id: string
+          category?: string | null
+          cost_price?: number
+          created_at?: string
+          current_stock?: number
+          id?: string
+          low_stock_threshold?: number
+          name: string
+          sale_price?: number
+          unit?: string
+        }
+        Update: {
+          business_id?: string
+          category?: string | null
+          cost_price?: number
+          created_at?: string
+          current_stock?: number
+          id?: string
+          low_stock_threshold?: number
+          name?: string
+          sale_price?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_transactions: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          note: string | null
+          product_id: string
+          quantity: number
+          recorded_by: string
+          type: Database["public"]["Enums"]["txn_type"]
+          unit_cost_snapshot: number
+          unit_sale_price_snapshot: number | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          product_id: string
+          quantity: number
+          recorded_by: string
+          type: Database["public"]["Enums"]["txn_type"]
+          unit_cost_snapshot?: number
+          unit_sale_price_snapshot?: number | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          product_id?: string
+          quantity?: number
+          recorded_by?: string
+          type?: Database["public"]["Enums"]["txn_type"]
+          unit_cost_snapshot?: number
+          unit_sale_price_snapshot?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_owner_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_worker_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      products_owner_view: {
+        Row: {
+          business_id: string | null
+          category: string | null
+          cost_price: number | null
+          created_at: string | null
+          current_stock: number | null
+          id: string | null
+          low_stock_threshold: number | null
+          name: string | null
+          sale_price: number | null
+          unit: string | null
+        }
+        Insert: {
+          business_id?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          current_stock?: number | null
+          id?: string | null
+          low_stock_threshold?: number | null
+          name?: string | null
+          sale_price?: number | null
+          unit?: string | null
+        }
+        Update: {
+          business_id?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          current_stock?: number | null
+          id?: string | null
+          low_stock_threshold?: number | null
+          name?: string | null
+          sale_price?: number | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_worker_view: {
+        Row: {
+          business_id: string | null
+          category: string | null
+          created_at: string | null
+          current_stock: number | null
+          id: string | null
+          low_stock_threshold: number | null
+          name: string | null
+          sale_price: number | null
+          unit: string | null
+        }
+        Insert: {
+          business_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          current_stock?: number | null
+          id?: string | null
+          low_stock_threshold?: number | null
+          name?: string | null
+          sale_price?: number | null
+          unit?: string | null
+        }
+        Update: {
+          business_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          current_stock?: number | null
+          id?: string | null
+          low_stock_threshold?: number | null
+          name?: string | null
+          sale_price?: number | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_transactions_owner_view: {
+        Row: {
+          business_id: string | null
+          created_at: string | null
+          id: string | null
+          note: string | null
+          product_id: string | null
+          quantity: number | null
+          recorded_by: string | null
+          type: Database["public"]["Enums"]["txn_type"] | null
+          unit_cost_snapshot: number | null
+          unit_sale_price_snapshot: number | null
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          note?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          recorded_by?: string | null
+          type?: Database["public"]["Enums"]["txn_type"] | null
+          unit_cost_snapshot?: number | null
+          unit_sale_price_snapshot?: number | null
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          note?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          recorded_by?: string | null
+          type?: Database["public"]["Enums"]["txn_type"] | null
+          unit_cost_snapshot?: number | null
+          unit_sale_price_snapshot?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_owner_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_worker_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_transactions_worker_view: {
+        Row: {
+          business_id: string | null
+          created_at: string | null
+          id: string | null
+          note: string | null
+          product_id: string | null
+          quantity: number | null
+          recorded_by: string | null
+          type: Database["public"]["Enums"]["txn_type"] | null
+          unit_sale_price_snapshot: number | null
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          note?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          recorded_by?: string | null
+          type?: Database["public"]["Enums"]["txn_type"] | null
+          unit_sale_price_snapshot?: number | null
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          note?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          recorded_by?: string | null
+          type?: Database["public"]["Enums"]["txn_type"] | null
+          unit_sale_price_snapshot?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_owner_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_worker_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      is_member: {
+        Args: { _business_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_owner: {
+        Args: { _business_id: string; _user_id: string }
+        Returns: boolean
+      }
+      join_business_with_code: { Args: { _code: string }; Returns: string }
+      member_role: {
+        Args: { _business_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["member_role"]
+      }
+      regenerate_invite_code: {
+        Args: { _business_id: string }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      member_role: "owner" | "worker"
+      txn_type: "sale" | "restock" | "adjustment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +560,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      member_role: ["owner", "worker"],
+      txn_type: ["sale", "restock", "adjustment"],
+    },
   },
 } as const
