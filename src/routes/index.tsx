@@ -19,15 +19,18 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
+      <header className="bg-brand text-brand-foreground">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">S</div>
             <span className="font-semibold text-lg">StockDesk</span>
           </div>
-          <Link to={authed ? "/app" : "/auth"} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground tap-target inline-flex items-center">
-            {authed ? "Open app" : "Sign in"}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/about" className="hidden sm:inline text-sm text-brand-foreground/80 hover:text-brand-foreground px-3 py-2">About</Link>
+            <Link to={authed ? "/app" : "/auth"} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground tap-target inline-flex items-center">
+              {authed ? "Open app" : "Sign in"}
+            </Link>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-16">
@@ -40,6 +43,7 @@ function Landing() {
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <Link to="/auth" className="rounded-lg bg-primary px-6 py-3 text-base font-medium text-primary-foreground tap-target inline-flex items-center">Get started free</Link>
+            <Link to="/about" className="rounded-lg border border-border bg-card px-6 py-3 text-base font-medium tap-target inline-flex items-center">About us</Link>
           </div>
         </section>
         <section className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -58,7 +62,11 @@ function Landing() {
         </section>
       </main>
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        Built on Lovable Cloud.
+        <div>© {new Date().getFullYear()} StockDesk</div>
+        <div className="mt-2 flex justify-center gap-4">
+          <Link to="/about" className="hover:text-foreground">About</Link>
+          <Link to="/auth" className="hover:text-foreground">Sign in</Link>
+        </div>
       </footer>
     </div>
   );
