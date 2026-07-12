@@ -70,6 +70,41 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          note: string | null
+          recorded_by: string
+          total_amount: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          recorded_by: string
+          total_amount?: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          recorded_by?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           business_id: string
@@ -123,6 +158,7 @@ export type Database = {
           created_at: string
           id: string
           note: string | null
+          order_id: string | null
           product_id: string
           quantity: number
           recorded_by: string
@@ -135,6 +171,7 @@ export type Database = {
           created_at?: string
           id?: string
           note?: string | null
+          order_id?: string | null
           product_id: string
           quantity: number
           recorded_by: string
@@ -147,6 +184,7 @@ export type Database = {
           created_at?: string
           id?: string
           note?: string | null
+          order_id?: string | null
           product_id?: string
           quantity?: number
           recorded_by?: string
@@ -160,6 +198,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -284,6 +329,7 @@ export type Database = {
           created_at: string | null
           id: string | null
           note: string | null
+          order_id: string | null
           product_id: string | null
           quantity: number | null
           recorded_by: string | null
@@ -296,6 +342,7 @@ export type Database = {
           created_at?: string | null
           id?: string | null
           note?: string | null
+          order_id?: string | null
           product_id?: string | null
           quantity?: number | null
           recorded_by?: string | null
@@ -308,6 +355,7 @@ export type Database = {
           created_at?: string | null
           id?: string | null
           note?: string | null
+          order_id?: string | null
           product_id?: string | null
           quantity?: number | null
           recorded_by?: string | null
@@ -321,6 +369,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -352,6 +407,7 @@ export type Database = {
           created_at: string | null
           id: string | null
           note: string | null
+          order_id: string | null
           product_id: string | null
           quantity: number | null
           recorded_by: string | null
@@ -363,6 +419,7 @@ export type Database = {
           created_at?: string | null
           id?: string | null
           note?: string | null
+          order_id?: string | null
           product_id?: string | null
           quantity?: number | null
           recorded_by?: string | null
@@ -374,6 +431,7 @@ export type Database = {
           created_at?: string | null
           id?: string | null
           note?: string | null
+          order_id?: string | null
           product_id?: string | null
           quantity?: number | null
           recorded_by?: string | null
@@ -386,6 +444,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
           {
@@ -413,6 +478,14 @@ export type Database = {
       }
     }
     Functions: {
+      create_restock: {
+        Args: { _business_id: string; _items: Json; _note?: string }
+        Returns: number
+      }
+      create_sale_order: {
+        Args: { _business_id: string; _items: Json; _note?: string }
+        Returns: string
+      }
       is_member: {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
