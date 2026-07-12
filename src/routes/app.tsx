@@ -51,9 +51,8 @@ function AppShell() {
 
   const isOwner = active.role === "owner";
     const tabs = [
-    { to: "/app", label: "Home", Icon: BarChart3, exact: true },
+    { to: "/app", label: "Stock", Icon: Package, exact: true },
     { to: "/app/sale", label: "Sale", Icon: ShoppingCart },
-    { to: "/app/stock" as any, label: "Stock", Icon: Package },
     ...(isOwner ? [{ to: "/app/reports", label: "Reports", Icon: BarChart3 }] : []),
     { to: "/app/more", label: "More", Icon: MoreHorizontal },
   ];
