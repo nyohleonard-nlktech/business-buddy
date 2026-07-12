@@ -83,8 +83,33 @@ function Landing() {
         </section>
       </main>
 
+      <section id="about" className="border-t border-border bg-brand text-brand-foreground">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="text-2xl font-bold tracking-tight">About us</h2>
+          <p className="mt-2 max-w-2xl text-sm text-brand-foreground/80 leading-relaxed">
+            StockDesk helps small business owners track stock, record sales, and know their real profit — without spreadsheets or accounting jargon.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 max-w-2xl">
+            {[
+              { initials: "NLK", name: "Nyoh Leonard Kanyi (NLK)", title: "Co-founder & CEO" },
+              { initials: "HS", name: "Herman Sedar", title: "Co-founder & COO" },
+            ].map(f => (
+              <div key={f.initials} className="flex items-center gap-3 rounded-xl border border-brand-foreground/10 bg-brand-foreground/5 p-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  {f.initials}
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{f.name}</div>
+                  <div className="text-xs text-brand-foreground/70">{f.title}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} StockDesk
+        © {new Date().getFullYear()} StockDesk · <a href="#about" className="underline hover:text-foreground">About</a>
       </footer>
     </div>
   );
