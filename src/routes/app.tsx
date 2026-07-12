@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppProvider, useApp } from "@/hooks/use-app";
 import type { User } from "@supabase/supabase-js";
-import { Package, PlusCircle, BarChart3, Settings, LogOut } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, MoreHorizontal, LogOut } from "lucide-react";
 import Onboarding from "@/components/onboarding";
 
 export const Route = createFileRoute("/app")({
@@ -50,11 +50,11 @@ function AppShell() {
   if (!active) return null;
 
   const isOwner = active.role === "owner";
-  const tabs = [
+    const tabs = [
     { to: "/app", label: "Stock", Icon: Package, exact: true },
-    { to: "/app/record", label: "Record", Icon: PlusCircle },
+    { to: "/app/sale", label: "Sale", Icon: ShoppingCart },
     ...(isOwner ? [{ to: "/app/reports", label: "Reports", Icon: BarChart3 }] : []),
-    ...(isOwner ? [{ to: "/app/settings", label: "Settings", Icon: Settings }] : []),
+    { to: "/app/more", label: "More", Icon: MoreHorizontal },
   ];
 
   async function signOut() {
