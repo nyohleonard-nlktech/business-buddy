@@ -14,8 +14,13 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppSalesLogRouteImport } from './routes/app.sales-log'
+import { Route as AppSaleRouteImport } from './routes/app.sale'
+import { Route as AppRestocksLogRouteImport } from './routes/app.restocks-log'
+import { Route as AppRestockRouteImport } from './routes/app.restock'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppRecordRouteImport } from './routes/app.record'
+import { Route as AppMoreRouteImport } from './routes/app.more'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -42,6 +47,26 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSalesLogRoute = AppSalesLogRouteImport.update({
+  id: '/sales-log',
+  path: '/sales-log',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSaleRoute = AppSaleRouteImport.update({
+  id: '/sale',
+  path: '/sale',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRestocksLogRoute = AppRestocksLogRouteImport.update({
+  id: '/restocks-log',
+  path: '/restocks-log',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRestockRoute = AppRestockRouteImport.update({
+  id: '/restock',
+  path: '/restock',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -52,21 +77,36 @@ const AppRecordRoute = AppRecordRouteImport.update({
   path: '/record',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMoreRoute = AppMoreRouteImport.update({
+  id: '/more',
+  path: '/more',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
   '/app/reports': typeof AppReportsRoute
+  '/app/restock': typeof AppRestockRoute
+  '/app/restocks-log': typeof AppRestocksLogRoute
+  '/app/sale': typeof AppSaleRoute
+  '/app/sales-log': typeof AppSalesLogRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
   '/app/reports': typeof AppReportsRoute
+  '/app/restock': typeof AppRestockRoute
+  '/app/restocks-log': typeof AppRestocksLogRoute
+  '/app/sale': typeof AppSaleRoute
+  '/app/sales-log': typeof AppSalesLogRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
 }
@@ -75,8 +115,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
   '/app/reports': typeof AppReportsRoute
+  '/app/restock': typeof AppRestockRoute
+  '/app/restocks-log': typeof AppRestocksLogRoute
+  '/app/sale': typeof AppSaleRoute
+  '/app/sales-log': typeof AppSalesLogRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
@@ -86,19 +131,40 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/more'
     | '/app/record'
     | '/app/reports'
+    | '/app/restock'
+    | '/app/restocks-log'
+    | '/app/sale'
+    | '/app/sales-log'
     | '/app/settings'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app/record' | '/app/reports' | '/app/settings' | '/app'
+  to:
+    | '/'
+    | '/auth'
+    | '/app/more'
+    | '/app/record'
+    | '/app/reports'
+    | '/app/restock'
+    | '/app/restocks-log'
+    | '/app/sale'
+    | '/app/sales-log'
+    | '/app/settings'
+    | '/app'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/auth'
+    | '/app/more'
     | '/app/record'
     | '/app/reports'
+    | '/app/restock'
+    | '/app/restocks-log'
+    | '/app/sale'
+    | '/app/sales-log'
     | '/app/settings'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -146,6 +212,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/sales-log': {
+      id: '/app/sales-log'
+      path: '/sales-log'
+      fullPath: '/app/sales-log'
+      preLoaderRoute: typeof AppSalesLogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/sale': {
+      id: '/app/sale'
+      path: '/sale'
+      fullPath: '/app/sale'
+      preLoaderRoute: typeof AppSaleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/restocks-log': {
+      id: '/app/restocks-log'
+      path: '/restocks-log'
+      fullPath: '/app/restocks-log'
+      preLoaderRoute: typeof AppRestocksLogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/restock': {
+      id: '/app/restock'
+      path: '/restock'
+      fullPath: '/app/restock'
+      preLoaderRoute: typeof AppRestockRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/reports': {
       id: '/app/reports'
       path: '/reports'
@@ -160,19 +254,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRecordRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/more': {
+      id: '/app/more'
+      path: '/more'
+      fullPath: '/app/more'
+      preLoaderRoute: typeof AppMoreRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppMoreRoute: typeof AppMoreRoute
   AppRecordRoute: typeof AppRecordRoute
   AppReportsRoute: typeof AppReportsRoute
+  AppRestockRoute: typeof AppRestockRoute
+  AppRestocksLogRoute: typeof AppRestocksLogRoute
+  AppSaleRoute: typeof AppSaleRoute
+  AppSalesLogRoute: typeof AppSalesLogRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppMoreRoute: AppMoreRoute,
   AppRecordRoute: AppRecordRoute,
   AppReportsRoute: AppReportsRoute,
+  AppRestockRoute: AppRestockRoute,
+  AppRestocksLogRoute: AppRestocksLogRoute,
+  AppSaleRoute: AppSaleRoute,
+  AppSalesLogRoute: AppSalesLogRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }
