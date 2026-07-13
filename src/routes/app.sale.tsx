@@ -3,12 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft, Receipt as ReceiptIcon } from "lucide-react";
 import { formatMoney } from "./app.index";
+import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
 
 export const Route = createFileRoute("/app/sale")({
   component: SalePage,
 });
+
 
 type P = { id: string; name: string; unit: string; sale_price: number; current_stock: number };
 type CartItem = { product_id: string; name: string; unit: string; unit_sale_price: number; quantity: number; stock: number };
@@ -22,7 +24,9 @@ function SalePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [receipt, setReceipt] = useState<{ items: CartItem[]; total: number; note: string; at: string } | null>(null);
+  const [receipt, setReceipt] = useState<{ items: CartItem[]; total: number; note: string; at: string; orderId: string } | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+
 
   useEffect(() => {
     const table = isOwner ? "products_owner_view" : "products_worker_view";
@@ -61,13 +65,14 @@ function SalePage() {
     setSubmitting(true);
     try {
       const items = cart.map(c => ({ product_id: c.product_id, quantity: c.quantity, unit_sale_price: c.unit_sale_price }));
-      const { error } = await supabase.rpc("create_sale_order" as any, {
+      const { data: orderId, error } = await supabase.rpc("create_sale_order" as any, {
         _business_id: active!.business_id,
         _items: items as any,
         _note: note.trim() || null,
       });
       if (error) throw error;
-      setReceipt({ items: cart, total, note: note.trim(), at: new Date().toLocaleString() });
+      setReceipt({ items: cart, total, note: note.trim(), at: new Date().toISOString(), orderId: (orderId as string) || crypto.randomUUID() });
+
       setCart([]);
       setNote("");
       // refresh stock counts
@@ -80,15 +85,24 @@ function SalePage() {
   }
 
   if (receipt) {
+    const receiptData: ReceiptData = {
+      businessName: active!.business.name,
+      orderId: receipt.orderId,
+      date: receipt.at,
+      cashierName: (active!.role === "owner" ? "Owner" : "Worker"),
+      items: receipt.items.map(i => ({ name: i.name, quantity: i.quantity, unit: i.unit, unit_price: i.unit_sale_price })),
+      total: receipt.total,
+      note: receipt.note || undefined,
+    };
     return (
       <div>
         <div className="rounded-2xl border-2 border-success bg-success/5 p-5 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success text-success-foreground"><Check className="h-8 w-8" /></div>
           <h1 className="text-2xl font-bold mt-3">Sale complete</h1>
-          <div className="text-sm text-muted-foreground mt-1">{receipt.at}</div>
+          <div className="text-sm text-muted-foreground mt-1">{new Date(receipt.at).toLocaleString()}</div>
         </div>
         <div className="mt-4 rounded-xl border border-border bg-card p-4">
-          <div className="text-xs uppercase text-muted-foreground mb-2">Receipt</div>
+          <div className="text-xs uppercase text-muted-foreground mb-2">Summary</div>
           <ul className="divide-y divide-border">
             {receipt.items.map(i => (
               <li key={i.product_id} className="flex items-center justify-between py-2">
@@ -106,13 +120,18 @@ function SalePage() {
           </div>
           {receipt.note && <div className="mt-2 text-sm text-muted-foreground">Note: {receipt.note}</div>}
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <button onClick={() => setShowReceipt(true)} className="tap-target rounded-xl border-2 border-primary bg-primary/10 py-3 font-semibold text-primary inline-flex items-center justify-center gap-1">
+            <ReceiptIcon className="h-4 w-4" /> Receipt
+          </button>
           <button onClick={() => setReceipt(null)} className="tap-target rounded-xl border-2 border-border bg-card py-3 font-semibold">New sale</button>
           <button onClick={() => navigate({ to: "/app" })} className="tap-target rounded-xl bg-primary py-3 font-semibold text-primary-foreground">Done</button>
         </div>
+        {showReceipt && <ReceiptModal data={receiptData} onClose={() => setShowReceipt(false)} />}
       </div>
     );
   }
+
 
   return (
     <div className="pb-40">

@@ -35,13 +35,14 @@ export function AppProvider({ user, children }: { user: User; children: ReactNod
   async function load() {
     const { data, error } = await supabase
       .from("business_members")
-      .select("business_id, role, business:businesses!inner(id, name, invite_code, owner_id)")
+      .select("business_id, role, business:businesses!inner(id, name, invite_code, owner_id, deactivated_at)")
       .eq("user_id", user.id);
     if (error) {
       console.error(error);
       setMemberships([]);
     } else {
-      const list = (data ?? []) as unknown as Membership[];
+      const raw = (data ?? []) as unknown as (Membership & { business: Membership["business"] & { deactivated_at: string | null } })[];
+      const list = raw.filter(m => !m.business.deactivated_at) as Membership[];
       setMemberships(list);
       const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
       const valid = list.find(m => m.business_id === stored);
@@ -49,6 +50,7 @@ export function AppProvider({ user, children }: { user: User; children: ReactNod
     }
     setLoaded(true);
   }
+
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user.id]);
 

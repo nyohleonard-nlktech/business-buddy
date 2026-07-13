@@ -3,12 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Receipt as ReceiptIcon } from "lucide-react";
 import { formatMoney } from "./app.index";
+import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
 
 export const Route = createFileRoute("/app/sales-log")({
   component: SalesLog,
 });
+
 
 type Order = { id: string; created_at: string; recorded_by: string; total_amount: number; note: string | null };
 type Line = { id: string; order_id: string; product_id: string; quantity: number; unit_sale_price_snapshot: number | null };
@@ -25,6 +27,9 @@ function SalesLog() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
+  const [profiles, setProfiles] = useState<Record<string, { name: string | null; phone: string | null }>>({});
+
 
   async function load() {
     setLoading(true);
@@ -46,8 +51,19 @@ function SalesLog() {
       const { data: l } = await supabase.from(view).select("id,order_id,product_id,quantity,unit_sale_price_snapshot").in("order_id", ids);
       setLines((l as Line[]) ?? []);
     } else setLines([]);
+    // profiles of cashiers
+    const userIds = Array.from(new Set(((o as Order[]) ?? []).map(x => x.recorded_by)));
+    if (userIds.length) {
+      const { data: profs } = await supabase.from("profiles" as never).select("user_id,name,phone").in("user_id", userIds);
+      const map: Record<string, { name: string | null; phone: string | null }> = {};
+      for (const p of ((profs as unknown as { user_id: string; name: string | null; phone: string | null }[]) ?? [])) {
+        map[p.user_id] = { name: p.name, phone: p.phone };
+      }
+      setProfiles(map);
+    }
     setLoading(false);
   }
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [active, from, to]);
 
   const sorted = useMemo(() => {
@@ -101,7 +117,9 @@ function SalesLog() {
                   {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">{new Date(o.created_at).toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">{ls.length} item{ls.length !== 1 ? "s" : ""} · by {o.recorded_by.slice(0, 8)}…</div>
+                    <div className="text-xs text-muted-foreground">
+                      {ls.length} item{ls.length !== 1 ? "s" : ""} · by {profiles[o.recorded_by]?.name || o.recorded_by.slice(0, 8) + "…"}
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold tabular-nums">{formatMoney(o.total_amount)}</div>
@@ -120,6 +138,25 @@ function SalesLog() {
                       );
                     })}
                     {o.note && <div className="text-xs text-muted-foreground pt-1 border-t border-border mt-2">Note: {o.note}</div>}
+                    <button
+                      onClick={() => setReceipt({
+                        businessName: active!.business.name,
+                        orderId: o.id,
+                        date: o.created_at,
+                        cashierName: profiles[o.recorded_by]?.name || "—",
+                        items: ls.map(l => ({
+                          name: prodMap.get(l.product_id)?.name ?? "Unknown",
+                          quantity: l.quantity,
+                          unit: prodMap.get(l.product_id)?.unit ?? "",
+                          unit_price: l.unit_sale_price_snapshot ?? 0,
+                        })),
+                        total: o.total_amount,
+                        note: o.note ?? undefined,
+                      })}
+                      className="mt-2 w-full rounded-lg border border-primary bg-primary/10 py-2 text-sm font-semibold text-primary inline-flex items-center justify-center gap-1"
+                    >
+                      <ReceiptIcon className="h-4 w-4" /> View receipt
+                    </button>
                   </div>
                 )}
               </li>
@@ -127,6 +164,8 @@ function SalesLog() {
           })}
         </ul>
       )}
+      {receipt && <ReceiptModal data={receipt} onClose={() => setReceipt(null)} />}
     </div>
   );
+
 }

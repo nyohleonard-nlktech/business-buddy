@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          body: string
+          created_at: string
+          from_admin_id: string
+          id: string
+          is_broadcast: boolean
+          read_at: string | null
+          target_user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          from_admin_id: string
+          id?: string
+          is_broadcast?: boolean
+          read_at?: string | null
+          target_user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          from_admin_id?: string
+          id?: string
+          is_broadcast?: boolean
+          read_at?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       business_members: {
         Row: {
           business_id: string
@@ -49,6 +79,7 @@ export type Database = {
       businesses: {
         Row: {
           created_at: string
+          deactivated_at: string | null
           id: string
           invite_code: string
           name: string
@@ -56,6 +87,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deactivated_at?: string | null
           id?: string
           invite_code?: string
           name: string
@@ -63,6 +95,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deactivated_at?: string | null
           id?: string
           invite_code?: string
           name?: string
@@ -104,6 +137,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_admins: {
+        Row: {
+          added_at: string
+          phone_number: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          phone_number: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          phone_number?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
@@ -151,6 +202,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          name: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       stock_transactions: {
         Row: {
@@ -478,6 +553,29 @@ export type Database = {
       }
     }
     Functions: {
+      admin_broadcast_message: { Args: { _body: string }; Returns: number }
+      admin_list_businesses: {
+        Args: never
+        Returns: {
+          business_id: string
+          created_at: string
+          deactivated_at: string
+          name: string
+          owner_name: string
+          owner_phone: string
+          owner_user_id: string
+          workers_count: number
+        }[]
+      }
+      admin_send_message: {
+        Args: { _body: string; _target_user: string }
+        Returns: string
+      }
+      admin_soft_delete_business: {
+        Args: { _business_id: string; _restore?: boolean }
+        Returns: undefined
+      }
+      claim_platform_admin: { Args: never; Returns: boolean }
       create_restock: {
         Args: { _business_id: string; _items: Json; _note?: string }
         Returns: number
@@ -494,7 +592,17 @@ export type Database = {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
       }
-      join_business_with_code: { Args: { _code: string }; Returns: string }
+      is_owner_of_member: {
+        Args: { _target_user: string; _viewer: string }
+        Returns: boolean
+      }
+      is_platform_admin: { Args: { _uid: string }; Returns: boolean }
+      join_business_with_code:
+        | { Args: { _code: string }; Returns: string }
+        | {
+            Args: { _code: string; _name?: string; _phone?: string }
+            Returns: string
+          }
       member_role: {
         Args: { _business_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["member_role"]
