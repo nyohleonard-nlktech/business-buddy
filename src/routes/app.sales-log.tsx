@@ -3,12 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Receipt as ReceiptIcon } from "lucide-react";
 import { formatMoney } from "./app.index";
+import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
 
 export const Route = createFileRoute("/app/sales-log")({
   component: SalesLog,
 });
+
 
 type Order = { id: string; created_at: string; recorded_by: string; total_amount: number; note: string | null };
 type Line = { id: string; order_id: string; product_id: string; quantity: number; unit_sale_price_snapshot: number | null };
