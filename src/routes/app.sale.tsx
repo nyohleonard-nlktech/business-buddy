@@ -65,13 +65,14 @@ function SalePage() {
     setSubmitting(true);
     try {
       const items = cart.map(c => ({ product_id: c.product_id, quantity: c.quantity, unit_sale_price: c.unit_sale_price }));
-      const { error } = await supabase.rpc("create_sale_order" as any, {
+      const { data: orderId, error } = await supabase.rpc("create_sale_order" as any, {
         _business_id: active!.business_id,
         _items: items as any,
         _note: note.trim() || null,
       });
       if (error) throw error;
-      setReceipt({ items: cart, total, note: note.trim(), at: new Date().toLocaleString() });
+      setReceipt({ items: cart, total, note: note.trim(), at: new Date().toISOString(), orderId: (orderId as string) || crypto.randomUUID() });
+
       setCart([]);
       setNote("");
       // refresh stock counts
