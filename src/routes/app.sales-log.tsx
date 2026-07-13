@@ -51,8 +51,19 @@ function SalesLog() {
       const { data: l } = await supabase.from(view).select("id,order_id,product_id,quantity,unit_sale_price_snapshot").in("order_id", ids);
       setLines((l as Line[]) ?? []);
     } else setLines([]);
+    // profiles of cashiers
+    const userIds = Array.from(new Set(((o as Order[]) ?? []).map(x => x.recorded_by)));
+    if (userIds.length) {
+      const { data: profs } = await supabase.from("profiles" as never).select("user_id,name,phone").in("user_id", userIds);
+      const map: Record<string, { name: string | null; phone: string | null }> = {};
+      for (const p of ((profs as unknown as { user_id: string; name: string | null; phone: string | null }[]) ?? [])) {
+        map[p.user_id] = { name: p.name, phone: p.phone };
+      }
+      setProfiles(map);
+    }
     setLoading(false);
   }
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [active, from, to]);
 
   const sorted = useMemo(() => {
