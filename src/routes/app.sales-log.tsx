@@ -27,6 +27,9 @@ function SalesLog() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
+  const [profiles, setProfiles] = useState<Record<string, { name: string | null; phone: string | null }>>({});
+
 
   async function load() {
     setLoading(true);
