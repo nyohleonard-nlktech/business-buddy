@@ -21,6 +21,7 @@ import { Route as AppRestockRouteImport } from './routes/app.restock'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppRecordRouteImport } from './routes/app.record'
 import { Route as AppMoreRouteImport } from './routes/app.more'
+import { Route as AppInboxRouteImport } from './routes/app.inbox'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -82,11 +83,17 @@ const AppMoreRoute = AppMoreRouteImport.update({
   path: '/more',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInboxRoute = AppInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/inbox': typeof AppInboxRoute
   '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
   '/app/reports': typeof AppReportsRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/inbox': typeof AppInboxRoute
   '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
   '/app/reports': typeof AppReportsRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/inbox': typeof AppInboxRoute
   '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
   '/app/reports': typeof AppReportsRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/inbox'
     | '/app/more'
     | '/app/record'
     | '/app/reports'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/app/inbox'
     | '/app/more'
     | '/app/record'
     | '/app/reports'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/inbox'
     | '/app/more'
     | '/app/record'
     | '/app/reports'
@@ -261,10 +273,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMoreRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inbox': {
+      id: '/app/inbox'
+      path: '/inbox'
+      fullPath: '/app/inbox'
+      preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppInboxRoute: typeof AppInboxRoute
   AppMoreRoute: typeof AppMoreRoute
   AppRecordRoute: typeof AppRecordRoute
   AppReportsRoute: typeof AppReportsRoute
@@ -277,6 +297,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppInboxRoute: AppInboxRoute,
   AppMoreRoute: AppMoreRoute,
   AppRecordRoute: AppRecordRoute,
   AppReportsRoute: AppReportsRoute,
