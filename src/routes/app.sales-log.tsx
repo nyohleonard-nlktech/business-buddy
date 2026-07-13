@@ -117,7 +117,9 @@ function SalesLog() {
                   {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">{new Date(o.created_at).toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">{ls.length} item{ls.length !== 1 ? "s" : ""} · by {o.recorded_by.slice(0, 8)}…</div>
+                    <div className="text-xs text-muted-foreground">
+                      {ls.length} item{ls.length !== 1 ? "s" : ""} · by {profiles[o.recorded_by]?.name || o.recorded_by.slice(0, 8) + "…"}
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold tabular-nums">{formatMoney(o.total_amount)}</div>
@@ -136,6 +138,25 @@ function SalesLog() {
                       );
                     })}
                     {o.note && <div className="text-xs text-muted-foreground pt-1 border-t border-border mt-2">Note: {o.note}</div>}
+                    <button
+                      onClick={() => setReceipt({
+                        businessName: active!.business.name,
+                        orderId: o.id,
+                        date: o.created_at,
+                        cashierName: profiles[o.recorded_by]?.name || "—",
+                        items: ls.map(l => ({
+                          name: prodMap.get(l.product_id)?.name ?? "Unknown",
+                          quantity: l.quantity,
+                          unit: prodMap.get(l.product_id)?.unit ?? "",
+                          unit_price: l.unit_sale_price_snapshot ?? 0,
+                        })),
+                        total: o.total_amount,
+                        note: o.note ?? undefined,
+                      })}
+                      className="mt-2 w-full rounded-lg border border-primary bg-primary/10 py-2 text-sm font-semibold text-primary inline-flex items-center justify-center gap-1"
+                    >
+                      <ReceiptIcon className="h-4 w-4" /> View receipt
+                    </button>
                   </div>
                 )}
               </li>
@@ -143,6 +164,8 @@ function SalesLog() {
           })}
         </ul>
       )}
+      {receipt && <ReceiptModal data={receipt} onClose={() => setReceipt(null)} />}
     </div>
   );
+
 }
