@@ -102,6 +102,3 @@ function Landing() {
   );
 }
 
-export function formatMoney(n: number | null | undefined): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "XAF", maximumFractionDigits: 0 }).format(n || 0);
-}
