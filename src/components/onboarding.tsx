@@ -29,9 +29,16 @@ export default function Onboarding({ onDone, onSignOut }: { onDone: () => Promis
 
   async function joinBiz(e: React.FormEvent) {
     e.preventDefault();
+    const digits = workerPhone.replace(/\D+/g, "");
+    if (!workerName.trim()) { toast.error("Enter your name"); return; }
+    if (digits.length < 7) { toast.error("Enter a valid phone number"); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.rpc("join_business_with_code", { _code: code.trim() });
+      const { error } = await supabase.rpc("join_business_with_code" as never, {
+        _code: code.trim(),
+        _name: workerName.trim(),
+        _phone: digits,
+      } as never);
       if (error) throw error;
       toast.success("Joined!");
       await onDone();
@@ -39,6 +46,7 @@ export default function Onboarding({ onDone, onSignOut }: { onDone: () => Promis
       toast.error(err.message);
     } finally { setLoading(false); }
   }
+
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
