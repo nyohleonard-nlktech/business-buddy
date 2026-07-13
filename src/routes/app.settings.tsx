@@ -10,6 +10,7 @@ export const Route = createFileRoute("/app/settings")({
 });
 
 type Member = { id: string; user_id: string; role: "owner" | "worker"; invited_at: string };
+type Profile = { user_id: string; name: string | null; phone: string | null };
 
 function SettingsPage() {
   const { active, refresh } = useApp();
@@ -17,13 +18,22 @@ function SettingsPage() {
 
   const [inviteCode, setInviteCode] = useState(active!.business.invite_code);
   const [members, setMembers] = useState<Member[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
     const { data, error } = await supabase.from("business_members").select("*").eq("business_id", active!.business_id);
     if (error) toast.error(error.message);
-    else setMembers((data as Member[]) ?? []);
+    const list = (data as Member[]) ?? [];
+    setMembers(list);
+    if (list.length) {
+      const ids = list.map(m => m.user_id);
+      const { data: profs } = await supabase.from("profiles" as never).select("user_id,name,phone").in("user_id", ids);
+      const map: Record<string, Profile> = {};
+      for (const p of ((profs as unknown as Profile[]) ?? [])) map[p.user_id] = p;
+      setProfiles(map);
+    }
     setLoading(false);
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [active!.business_id]);
@@ -43,7 +53,7 @@ function SettingsPage() {
 
   async function removeMember(m: Member) {
     if (m.role === "owner") return;
-    if (!confirm("Remove this worker?")) return;
+    if (!confirm("Remove this worker? Their past sales stay in the records.")) return;
     const { error } = await supabase.from("business_members").delete().eq("id", m.id);
     if (error) toast.error(error.message);
     else { toast.success("Removed"); load(); }
@@ -67,20 +77,27 @@ function SettingsPage() {
         <h2 className="font-semibold mb-2">Team ({members.length})</h2>
         {loading ? <div className="text-muted-foreground text-sm">Loading…</div> : (
           <ul className="space-y-2">
-            {members.map(m => (
-              <li key={m.id} className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-semibold">
-                  {m.role === "owner" ? "O" : "W"}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-mono truncate">{m.user_id.slice(0, 8)}…</div>
-                  <div className="text-xs text-muted-foreground uppercase">{m.role}</div>
-                </div>
-                {m.role === "worker" && (
-                  <button onClick={() => removeMember(m)} className="tap-target text-destructive p-2" aria-label="Remove"><UserMinus className="h-5 w-5" /></button>
-                )}
-              </li>
-            ))}
+            {members.map(m => {
+              const p = profiles[m.user_id];
+              const displayName = p?.name?.trim() || (m.role === "owner" ? "Owner" : "Worker");
+              const initials = displayName.split(/\s+/).map(x => x[0]).slice(0, 2).join("").toUpperCase() || "?";
+              return (
+                <li key={m.id} className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${m.role === "owner" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                    {initials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold truncate">{displayName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {p?.phone || "no phone"} · <span className="uppercase">{m.role}</span>
+                    </div>
+                  </div>
+                  {m.role === "worker" && (
+                    <button onClick={() => removeMember(m)} className="tap-target text-destructive p-2" aria-label="Remove"><UserMinus className="h-5 w-5" /></button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
