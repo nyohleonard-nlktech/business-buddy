@@ -112,3 +112,26 @@
   min-height: 44px;
   min-width: 44px;
 }
+
+/* Print styles: when printing a receipt, hide everything except the receipt paper. */
+@media print {
+  @page { size: 80mm auto; margin: 4mm; }
+  body.printing-receipt * { visibility: hidden !important; }
+  body.printing-receipt .receipt-overlay,
+  body.printing-receipt .receipt-overlay * { visibility: visible !important; }
+  body.printing-receipt .receipt-overlay {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  body.printing-receipt .receipt-overlay .no-print { display: none !important; }
+  body.printing-receipt .receipt-paper {
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
