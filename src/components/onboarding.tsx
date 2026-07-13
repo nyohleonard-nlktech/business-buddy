@@ -7,7 +7,10 @@ export default function Onboarding({ onDone, onSignOut }: { onDone: () => Promis
   const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [workerName, setWorkerName] = useState("");
+  const [workerPhone, setWorkerPhone] = useState("");
   const [loading, setLoading] = useState(false);
+
 
   async function createBiz(e: React.FormEvent) {
     e.preventDefault();
