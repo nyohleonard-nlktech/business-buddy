@@ -24,7 +24,9 @@ function SalePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [receipt, setReceipt] = useState<{ items: CartItem[]; total: number; note: string; at: string } | null>(null);
+  const [receipt, setReceipt] = useState<{ items: CartItem[]; total: number; note: string; at: string; orderId: string } | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+
 
   useEffect(() => {
     const table = isOwner ? "products_owner_view" : "products_worker_view";
