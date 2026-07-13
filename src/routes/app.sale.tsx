@@ -3,12 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft, Receipt as ReceiptIcon } from "lucide-react";
 import { formatMoney } from "./app.index";
+import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
 
 export const Route = createFileRoute("/app/sale")({
   component: SalePage,
 });
+
 
 type P = { id: string; name: string; unit: string; sale_price: number; current_stock: number };
 type CartItem = { product_id: string; name: string; unit: string; unit_sale_price: number; quantity: number; stock: number };
