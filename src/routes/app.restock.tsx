@@ -5,6 +5,8 @@ import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
 import { Plus, Minus, Trash2, PackagePlus, Search } from "lucide-react";
 import { formatMoney } from "./app.index";
+import { enqueue, newLocalId, syncNow } from "@/lib/offline";
+import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export const Route = createFileRoute("/app/restock")({
   component: RestockPage,
@@ -14,9 +16,10 @@ type P = { id: string; name: string; unit: string; cost_price: number; current_s
 type Line = { product_id: string; name: string; unit: string; quantity: number; unit_cost: number; update_cost_price: boolean };
 
 function RestockPage() {
-  const { active } = useApp();
+  const { active, user } = useApp();
   if (active!.role !== "owner") throw redirect({ to: "/app" });
   const navigate = useNavigate();
+  const { online, syncNow: doSync } = useOfflineSync(active!.business_id);
   const [products, setProducts] = useState<P[]>([]);
   const [q, setQ] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
@@ -57,11 +60,20 @@ function RestockPage() {
       const items = lines.map(l => ({
         product_id: l.product_id, quantity: l.quantity, unit_cost: l.unit_cost, update_cost_price: l.update_cost_price,
       }));
-      const { error } = await supabase.rpc("create_restock" as any, {
-        _business_id: active!.business_id, _items: items as any, _note: note.trim() || null,
+      await enqueue({
+        kind: "restock",
+        localId: newLocalId(),
+        businessId: active!.business_id,
+        userId: user.id,
+        createdAt: new Date().toISOString(),
+        note: note.trim() || null,
+        retries: 0,
+        items,
       });
-      if (error) throw error;
-      toast.success(`Restocked ${lines.length} product(s)`);
+      toast.success(online
+        ? `Restocked ${lines.length} product(s)`
+        : `Saved locally — will sync when online`);
+      if (online) void doSync().then(() => void syncNow(active!.business_id));
       navigate({ to: "/app" });
     } catch (e: any) { toast.error(e.message); }
     finally { setSubmitting(false); }
