@@ -116,8 +116,13 @@ function SalePage() {
       <div>
         <div className="rounded-2xl border-2 border-success bg-success/5 p-5 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success text-success-foreground"><Check className="h-8 w-8" /></div>
-          <h1 className="text-2xl font-bold mt-3">Sale complete</h1>
+          <h1 className="text-2xl font-bold mt-3">Sale recorded</h1>
           <div className="text-sm text-muted-foreground mt-1">{new Date(receipt.at).toLocaleString()}</div>
+          {receipt.pending && (
+            <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-warning/20 text-warning-foreground border border-warning/40 px-2 py-1 text-xs font-semibold">
+              <CloudOff className="h-3 w-3" /> Saved locally — will sync when online
+            </div>
+          )}
         </div>
         <div className="mt-4 rounded-xl border border-border bg-card p-4">
           <div className="text-xs uppercase text-muted-foreground mb-2">Summary</div>
