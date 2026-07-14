@@ -18,7 +18,7 @@ type P = { id: string; name: string; unit: string; sale_price: number; current_s
 type CartItem = { product_id: string; name: string; unit: string; unit_sale_price: number; quantity: number; stock: number };
 
 function SalePage() {
-  const { active } = useApp();
+  const { active, user } = useApp();
   const isOwner = active!.role === "owner";
   const navigate = useNavigate();
   const [products, setProducts] = useState<P[]>([]);
@@ -26,24 +26,33 @@ function SalePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [receipt, setReceipt] = useState<{ items: CartItem[]; total: number; note: string; at: string; orderId: string } | null>(null);
+  const [receipt, setReceipt] = useState<{ items: CartItem[]; total: number; note: string; at: string; orderId: string; pending: boolean } | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
-
+  const { deltas, online, syncNow: doSync } = useOfflineSync(active!.business_id);
 
   useEffect(() => {
     const table = isOwner ? "products_owner_view" : "products_worker_view";
     supabase.from(table).select("id,name,unit,sale_price,current_stock").eq("business_id", active!.business_id).order("name")
       .then(({ data, error }) => {
-        if (error) toast.error(error.message);
+        if (error) {
+          // offline / network error — keep whatever we already had
+          if (!online) toast.message("Offline — showing last known stock");
+        }
         else setProducts((data as P[]) ?? []);
       });
-  }, [active, isOwner]);
+  }, [active, isOwner, online]);
+
+  // apply pending local deltas so worker sees their own recorded sales/restocks reflected
+  const displayed = useMemo(
+    () => products.map(p => ({ ...p, current_stock: p.current_stock + (deltas.get(p.id) ?? 0) })),
+    [products, deltas],
+  );
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return products;
-    return products.filter(p => p.name.toLowerCase().includes(s));
-  }, [q, products]);
+    if (!s) return displayed;
+    return displayed.filter(p => p.name.toLowerCase().includes(s));
+  }, [q, displayed]);
 
   const total = useMemo(() => cart.reduce((s, c) => s + c.unit_sale_price * c.quantity, 0), [cart]);
 
@@ -61,28 +70,35 @@ function SalePage() {
 
   async function complete() {
     if (cart.length === 0) return;
-    for (const c of cart) {
-      if (c.quantity > c.stock) { toast.error(`Not enough ${c.name} in stock (${c.stock})`); return; }
+    // Only warn about local stock; never block — offline conflicts are reconciled later.
+    if (online) {
+      for (const c of cart) {
+        if (c.quantity > c.stock) { toast.error(`Not enough ${c.name} in stock (${c.stock})`); return; }
+      }
     }
     setSubmitting(true);
     try {
       const items = cart.map(c => ({ product_id: c.product_id, quantity: c.quantity, unit_sale_price: c.unit_sale_price }));
-      const { data: orderId, error } = await supabase.rpc("create_sale_order" as any, {
-        _business_id: active!.business_id,
-        _items: items as any,
-        _note: note.trim() || null,
+      const localId = newLocalId();
+      const at = new Date().toISOString();
+      await enqueue({
+        kind: "sale",
+        localId,
+        businessId: active!.business_id,
+        userId: user.id,
+        createdAt: at,
+        note: note.trim() || null,
+        retries: 0,
+        items,
+        total,
       });
-      if (error) throw error;
-      setReceipt({ items: cart, total, note: note.trim(), at: new Date().toISOString(), orderId: (orderId as string) || crypto.randomUUID() });
-
+      setReceipt({ items: cart, total, note: note.trim(), at, orderId: localId, pending: true });
       setCart([]);
       setNote("");
-      // refresh stock counts
-      const table = isOwner ? "products_owner_view" : "products_worker_view";
-      const { data } = await supabase.from(table).select("id,name,unit,sale_price,current_stock").eq("business_id", active!.business_id).order("name");
-      setProducts((data as P[]) ?? []);
+      // fire-and-forget sync attempt (won't block UI)
+      if (online) void doSync().then(() => void syncNow(active!.business_id));
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message ?? "Could not save sale");
     } finally { setSubmitting(false); }
   }
 
