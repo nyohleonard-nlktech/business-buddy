@@ -19,6 +19,7 @@ type Product = {
   cost_price?: number;
   low_stock_threshold: number;
   current_stock: number;
+  _pendingDelta?: number;
 };
 
 function ProductsPage() {
