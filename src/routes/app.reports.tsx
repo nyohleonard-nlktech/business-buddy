@@ -75,8 +75,9 @@ function ReportsPage() {
       if (bucket) bucket.rev += (s.unit_sale_price_snapshot ?? 0) * s.quantity;
     }
     const maxRev = Math.max(1, ...byDay.map(d => d.rev));
-    const lowStock = products.filter(p => p.current_stock <= p.low_stock_threshold);
-    return { revenue, profit: revenue - cost, unitsSold, valuation, top, byDay, maxRev, lowStock };
+    const lowStock = products.filter(p => p.current_stock <= p.low_stock_threshold && p.current_stock >= 0);
+    const negativeStock = products.filter(p => p.current_stock < 0);
+    return { revenue, profit: revenue - cost, unitsSold, valuation, top, byDay, maxRev, lowStock, negativeStock };
   }, [txns, products, range]);
 
   return (
@@ -94,6 +95,28 @@ function ReportsPage() {
 
       {loading ? <div className="text-muted-foreground">Loading…</div> : (
         <>
+          {stats.negativeStock.length > 0 && (
+            <div className="rounded-xl border-2 border-destructive/50 bg-destructive/10 p-3 mb-4">
+              <div className="flex items-center gap-2 font-semibold text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Stock discrepancy on {stats.negativeStock.length} product{stats.negativeStock.length > 1 ? "s" : ""}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                These went below zero — likely two people sold the last units offline before syncing. Restock or adjust to reconcile.
+              </p>
+              <div className="mt-2 text-sm space-y-1">
+                {stats.negativeStock.map(p => (
+                  <div key={p.id} className="flex justify-between">
+                    <span className="truncate">{p.name}</span>
+                    <span className="font-bold tabular-nums text-destructive">{p.current_stock} {p.unit}</span>
+                  </div>
+                ))}
+              </div>
+              <Link to="/app/restock" className="mt-3 inline-flex items-center gap-2 rounded-lg bg-destructive text-destructive-foreground px-3 py-2 text-sm font-semibold tap-target">
+                <PackagePlus className="h-4 w-4" /> Reconcile
+              </Link>
+            </div>
+          )}
           {stats.lowStock.length > 0 && (
             <div className="rounded-xl border-2 border-warning/50 bg-warning/10 p-3 mb-4">
               <div className="flex items-center gap-2 font-semibold text-warning-foreground">

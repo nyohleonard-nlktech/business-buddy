@@ -5,6 +5,7 @@ import { AppProvider, useApp } from "@/hooks/use-app";
 import type { User } from "@supabase/supabase-js";
 import { Package, ShoppingCart, BarChart3, MoreHorizontal, LogOut } from "lucide-react";
 import Onboarding from "@/components/onboarding";
+import { SyncStatusPill } from "@/components/SyncStatus";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -81,6 +82,7 @@ function AppShell() {
             )}
             <div className="text-xs text-brand-foreground/70 uppercase tracking-wide">{active.role}</div>
           </div>
+          <SyncStatusPill />
           <button onClick={signOut} className="tap-target rounded-md p-2 text-brand-foreground/80 hover:text-brand-foreground" aria-label="Sign out">
             <LogOut className="h-5 w-5" />
           </button>
