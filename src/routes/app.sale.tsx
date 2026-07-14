@@ -3,9 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft, Receipt as ReceiptIcon } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft, Receipt as ReceiptIcon, CloudOff } from "lucide-react";
 import { formatMoney } from "./app.index";
 import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
+import { enqueue, newLocalId, syncNow } from "@/lib/offline";
+import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export const Route = createFileRoute("/app/sale")({
   component: SalePage,
