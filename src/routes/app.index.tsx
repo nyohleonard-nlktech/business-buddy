@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Pencil, X } from "lucide-react";
+import { Plus, AlertTriangle, Pencil, X, CloudOff } from "lucide-react";
+import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export const Route = createFileRoute("/app/")({
   component: ProductsPage,
@@ -27,17 +28,26 @@ function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const { deltas, online } = useOfflineSync(active!.business_id);
 
   async function load() {
     setLoading(true);
     const table = isOwner ? "products_owner_view" : "products_worker_view";
     const { data, error } = await supabase.from(table).select("*").eq("business_id", active!.business_id).order("name");
-    if (error) toast.error(error.message);
+    if (error) { if (online) toast.error(error.message); }
     else setProducts((data as Product[]) ?? []);
     setLoading(false);
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [active!.business_id]);
+
+  const displayed = useMemo(
+    () => products.map(p => {
+      const d = deltas.get(p.id) ?? 0;
+      return { ...p, current_stock: p.current_stock + d, _pendingDelta: d };
+    }),
+    [products, deltas],
+  );
 
   return (
     <div>
@@ -58,12 +68,16 @@ function ProductsPage() {
         </div>
       ) : (
         <ul className="space-y-2">
-          {products.map(p => {
+          {displayed.map(p => {
             const low = p.current_stock <= p.low_stock_threshold;
+            const hasPending = (p._pendingDelta ?? 0) !== 0;
             return (
               <li key={p.id} className={`rounded-xl border ${low ? "border-warning/50 bg-warning/5" : "border-border bg-card"} p-3 flex items-center gap-3`}>
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold truncate">{p.name}</div>
+                  <div className="font-semibold truncate flex items-center gap-1">
+                    {p.name}
+                    {hasPending && <CloudOff className="h-3.5 w-3.5 text-warning" aria-label="Pending sync" />}
+                  </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {p.category ?? "—"} · sale {formatMoney(p.sale_price)}
                     {isOwner && p.cost_price !== undefined && <> · cost {formatMoney(p.cost_price)}</>}
