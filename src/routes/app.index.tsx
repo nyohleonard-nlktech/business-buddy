@@ -5,6 +5,7 @@ import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Pencil, X, CloudOff } from "lucide-react";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
+import { cacheProducts, readCachedProducts, type CachedProduct } from "@/lib/offline";
 
 export const Route = createFileRoute("/app/")({
   component: ProductsPage,
