@@ -26,13 +26,28 @@ function RestockPage() {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function loadProducts() {
-    const { data, error } = await supabase.from("products_owner_view")
-      .select("id,name,unit,cost_price,current_stock").eq("business_id", active!.business_id).order("name");
-    if (error) toast.error(error.message);
-    else setProducts((data as P[]) ?? []);
-  }
-  useEffect(() => { loadProducts(); /* eslint-disable-next-line */ }, [active]);
+  useEffect(() => {
+    let cancelled = false;
+    // 1) Read local cache immediately so offline reopen works.
+    readCachedProducts(active!.business_id, "owner").then(cached => {
+      if (!cancelled && cached && cached.length) setProducts(cached as unknown as P[]);
+    });
+    // 2) If online, refresh from network and update cache.
+    if (online) {
+      supabase.from("products_owner_view")
+        .select("id,name,unit,cost_price,current_stock").eq("business_id", active!.business_id).order("name")
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          if (error) { /* keep cache */ }
+          else if (data) {
+            setProducts(data as P[]);
+            void cacheProducts(active!.business_id, "owner", data as CachedProduct[]);
+          }
+        });
+    }
+    return () => { cancelled = true; };
+    /* eslint-disable-next-line */
+  }, [active, online]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
