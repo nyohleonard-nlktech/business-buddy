@@ -20,24 +20,45 @@ export type PendingRestock = PendingBase & { kind: "restock"; items: RestockItem
 export type Pending = PendingSale | PendingRestock;
 
 const DB_NAME = "stockdesk-offline";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = "pending";
+const PRODUCTS_STORE = "products_cache";
 
 let dbp: Promise<IDBPDatabase> | null = null;
 function db() {
   if (typeof indexedDB === "undefined") throw new Error("IndexedDB unavailable");
   if (!dbp) {
     dbp = openDB(DB_NAME, DB_VERSION, {
-      upgrade(d) {
+      upgrade(d, oldVersion) {
         if (!d.objectStoreNames.contains(STORE)) {
           const s = d.createObjectStore(STORE, { keyPath: "localId" });
           s.createIndex("byBusiness", "businessId");
           s.createIndex("byCreated", "createdAt");
         }
+        if (oldVersion < 2 && !d.objectStoreNames.contains(PRODUCTS_STORE)) {
+          d.createObjectStore(PRODUCTS_STORE, { keyPath: "key" });
+        }
       },
     });
   }
   return dbp;
+}
+
+// ---------- Products cache (for offline reads) ----------
+export type CachedProduct = Record<string, any> & { id: string };
+type ProductsCacheRow = { key: string; businessId: string; role: "owner" | "worker"; products: CachedProduct[]; cachedAt: string };
+
+function pkey(businessId: string, role: "owner" | "worker") { return `${businessId}:${role}`; }
+
+export async function cacheProducts(businessId: string, role: "owner" | "worker", products: CachedProduct[]) {
+  const d = await db();
+  await d.put(PRODUCTS_STORE, { key: pkey(businessId, role), businessId, role, products, cachedAt: new Date().toISOString() } as ProductsCacheRow);
+}
+
+export async function readCachedProducts(businessId: string, role: "owner" | "worker"): Promise<CachedProduct[] | null> {
+  const d = await db();
+  const row = (await d.get(PRODUCTS_STORE, pkey(businessId, role))) as ProductsCacheRow | undefined;
+  return row?.products ?? null;
 }
 
 export function newLocalId() {
