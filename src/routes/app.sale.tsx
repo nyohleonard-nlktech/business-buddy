@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft, Receipt as ReceiptIcon, CloudOff } from "lucide-react";
 import { formatMoney } from "./app.index";
 import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
-import { enqueue, newLocalId, syncNow } from "@/lib/offline";
+import { enqueue, newLocalId, syncNow, cacheProducts, readCachedProducts, type CachedProduct } from "@/lib/offline";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export const Route = createFileRoute("/app/sale")({
@@ -31,15 +31,29 @@ function SalePage() {
   const { deltas, online, syncNow: doSync } = useOfflineSync(active!.business_id);
 
   useEffect(() => {
+    let cancelled = false;
+    const role: "owner" | "worker" = isOwner ? "owner" : "worker";
     const table = isOwner ? "products_owner_view" : "products_worker_view";
-    supabase.from(table).select("id,name,unit,sale_price,current_stock").eq("business_id", active!.business_id).order("name")
-      .then(({ data, error }) => {
-        if (error) {
-          // offline / network error — keep whatever we already had
-          if (!online) toast.message("Offline — showing last known stock");
-        }
-        else setProducts((data as P[]) ?? []);
-      });
+
+    // 1) Read local cache immediately so offline reopen works.
+    readCachedProducts(active!.business_id, role).then(cached => {
+      if (!cancelled && cached && cached.length) setProducts(cached as P[]);
+    });
+
+    // 2) If online, refresh from network and update cache.
+    if (online) {
+      supabase.from(table).select("id,name,unit,sale_price,current_stock").eq("business_id", active!.business_id).order("name")
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          if (error) {
+            if (!online) toast.message("Offline — showing last known stock");
+          } else if (data) {
+            setProducts(data as P[]);
+            void cacheProducts(active!.business_id, role, data as CachedProduct[]);
+          }
+        });
+    }
+    return () => { cancelled = true; };
   }, [active, isOwner, online]);
 
   // apply pending local deltas so worker sees their own recorded sales/restocks reflected

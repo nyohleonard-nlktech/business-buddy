@@ -5,6 +5,7 @@ import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Pencil, X, CloudOff } from "lucide-react";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
+import { cacheProducts, readCachedProducts, type CachedProduct } from "@/lib/offline";
 
 export const Route = createFileRoute("/app/")({
   component: ProductsPage,
@@ -32,11 +33,22 @@ function ProductsPage() {
   const { deltas, online } = useOfflineSync(active!.business_id);
 
   async function load() {
-    setLoading(true);
+    const role: "owner" | "worker" = isOwner ? "owner" : "worker";
     const table = isOwner ? "products_owner_view" : "products_worker_view";
+
+    // Show cached data immediately.
+    const cached = await readCachedProducts(active!.business_id, role);
+    if (cached && cached.length) { setProducts(cached as Product[]); setLoading(false); }
+
+    if (!online) { setLoading(false); return; }
+
+    setLoading(prev => (cached && cached.length ? false : true));
     const { data, error } = await supabase.from(table).select("*").eq("business_id", active!.business_id).order("name");
-    if (error) { if (online) toast.error(error.message); }
-    else setProducts((data as Product[]) ?? []);
+    if (error) { if (online && !(cached && cached.length)) toast.error(error.message); }
+    else {
+      setProducts((data as Product[]) ?? []);
+      void cacheProducts(active!.business_id, role, (data ?? []) as CachedProduct[]);
+    }
     setLoading(false);
   }
 
