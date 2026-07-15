@@ -5,7 +5,7 @@ import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
 import { Plus, Minus, Trash2, PackagePlus, Search } from "lucide-react";
 import { formatMoney } from "./app.index";
-import { enqueue, newLocalId, syncNow } from "@/lib/offline";
+import { enqueue, newLocalId, syncNow, cacheProducts, readCachedProducts, type CachedProduct } from "@/lib/offline";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export const Route = createFileRoute("/app/restock")({
