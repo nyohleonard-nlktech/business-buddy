@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Search, Plus, Minus, Trash2, ShoppingCart, Check, ArrowLeft, Receipt as ReceiptIcon, CloudOff } from "lucide-react";
 import { formatMoney } from "./app.index";
 import { ReceiptModal, type ReceiptData } from "@/components/Receipt";
-import { enqueue, newLocalId, syncNow } from "@/lib/offline";
+import { enqueue, newLocalId, syncNow, cacheProducts, readCachedProducts } from "@/lib/offline";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export const Route = createFileRoute("/app/sale")({
