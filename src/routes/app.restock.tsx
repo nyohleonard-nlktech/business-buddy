@@ -29,7 +29,7 @@ function RestockPage() {
   useEffect(() => {
     let cancelled = false;
     // 1) Read local cache immediately so offline reopen works.
-    readCachedProducts(active!.business_id, "owner").then(cached => {
+    readCachedProducts(active!.business_id, "owner-restock").then(cached => {
       if (!cancelled && cached && cached.length) setProducts(cached as unknown as P[]);
     });
     // 2) If online, refresh from network and update cache.
@@ -41,7 +41,7 @@ function RestockPage() {
           if (error) { /* keep cache */ }
           else if (data) {
             setProducts(data as P[]);
-            void cacheProducts(active!.business_id, "owner", data as CachedProduct[]);
+            void cacheProducts(active!.business_id, "owner-restock", data as CachedProduct[]);
           }
         });
     }
