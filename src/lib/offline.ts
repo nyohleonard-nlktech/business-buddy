@@ -46,18 +46,18 @@ function db() {
 
 // ---------- Products cache (for offline reads) ----------
 export type CachedProduct = Record<string, any> & { id: string };
-type ProductsCacheRow = { key: string; businessId: string; role: "owner" | "worker"; products: CachedProduct[]; cachedAt: string };
+type ProductsCacheRow = { key: string; businessId: string; scope: string; products: CachedProduct[]; cachedAt: string };
 
-function pkey(businessId: string, role: "owner" | "worker") { return `${businessId}:${role}`; }
+function pkey(businessId: string, scope: string) { return `${businessId}:${scope}`; }
 
-export async function cacheProducts(businessId: string, role: "owner" | "worker", products: CachedProduct[]) {
+export async function cacheProducts(businessId: string, scope: "owner" | "worker" | "owner-restock" | string, products: CachedProduct[]) {
   const d = await db();
-  await d.put(PRODUCTS_STORE, { key: pkey(businessId, role), businessId, role, products, cachedAt: new Date().toISOString() } as ProductsCacheRow);
+  await d.put(PRODUCTS_STORE, { key: pkey(businessId, scope), businessId, scope, products, cachedAt: new Date().toISOString() } as ProductsCacheRow);
 }
 
-export async function readCachedProducts(businessId: string, role: "owner" | "worker"): Promise<CachedProduct[] | null> {
+export async function readCachedProducts(businessId: string, scope: "owner" | "worker" | "owner-restock" | string): Promise<CachedProduct[] | null> {
   const d = await db();
-  const row = (await d.get(PRODUCTS_STORE, pkey(businessId, role))) as ProductsCacheRow | undefined;
+  const row = (await d.get(PRODUCTS_STORE, pkey(businessId, scope))) as ProductsCacheRow | undefined;
   return row?.products ?? null;
 }
 
