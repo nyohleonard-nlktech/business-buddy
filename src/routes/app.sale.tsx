@@ -31,15 +31,29 @@ function SalePage() {
   const { deltas, online, syncNow: doSync } = useOfflineSync(active!.business_id);
 
   useEffect(() => {
+    let cancelled = false;
+    const role: "owner" | "worker" = isOwner ? "owner" : "worker";
     const table = isOwner ? "products_owner_view" : "products_worker_view";
-    supabase.from(table).select("id,name,unit,sale_price,current_stock").eq("business_id", active!.business_id).order("name")
-      .then(({ data, error }) => {
-        if (error) {
-          // offline / network error — keep whatever we already had
-          if (!online) toast.message("Offline — showing last known stock");
-        }
-        else setProducts((data as P[]) ?? []);
-      });
+
+    // 1) Read local cache immediately so offline reopen works.
+    readCachedProducts(active!.business_id, role).then(cached => {
+      if (!cancelled && cached && cached.length) setProducts(cached as P[]);
+    });
+
+    // 2) If online, refresh from network and update cache.
+    if (online) {
+      supabase.from(table).select("id,name,unit,sale_price,current_stock").eq("business_id", active!.business_id).order("name")
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          if (error) {
+            if (!online) toast.message("Offline — showing last known stock");
+          } else if (data) {
+            setProducts(data as P[]);
+            void cacheProducts(active!.business_id, role, data as CachedProduct[]);
+          }
+        });
+    }
+    return () => { cancelled = true; };
   }, [active, isOwner, online]);
 
   // apply pending local deltas so worker sees their own recorded sales/restocks reflected
