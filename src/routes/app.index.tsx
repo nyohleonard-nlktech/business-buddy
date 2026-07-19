@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Plus, AlertTriangle, Pencil, X, CloudOff } from "lucide-react";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
 import { cacheProducts, readCachedProducts, type CachedProduct } from "@/lib/offline";
+import { AgentSaleChat } from "@/components/AgentSaleChat";
 
 export const Route = createFileRoute("/app/")({
   component: ProductsPage,
@@ -64,6 +65,8 @@ function ProductsPage() {
 
   return (
     <div>
+      <AgentSaleChat businessId={active!.business_id} />
+
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold">Stock</h1>
         {isOwner && (

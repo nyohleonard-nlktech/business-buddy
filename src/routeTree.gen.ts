@@ -23,6 +23,7 @@ import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppRecordRouteImport } from './routes/app.record'
 import { Route as AppMoreRouteImport } from './routes/app.more'
 import { Route as AppInboxRouteImport } from './routes/app.inbox'
+import { Route as ApiAgentSaleRouteImport } from './routes/api.agent-sale'
 
 const ControlPanelRoute = ControlPanelRouteImport.update({
   id: '/control-panel',
@@ -42,6 +43,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentSaleRoute = ApiAgentSaleRouteImport.update({
+  id: '/api/agent-sale',
+  path: '/api/agent-sale',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/control-panel': typeof ControlPanelRoute
+  '/api/agent-sale': typeof ApiAgentSaleRoute
   '/app/inbox': typeof AppInboxRoute
   '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/control-panel': typeof ControlPanelRoute
+  '/api/agent-sale': typeof ApiAgentSaleRoute
   '/app/inbox': typeof AppInboxRoute
   '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/control-panel': typeof ControlPanelRoute
+  '/api/agent-sale': typeof ApiAgentSaleRoute
   '/app/inbox': typeof AppInboxRoute
   '/app/more': typeof AppMoreRoute
   '/app/record': typeof AppRecordRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/control-panel'
+    | '/api/agent-sale'
     | '/app/inbox'
     | '/app/more'
     | '/app/record'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/control-panel'
+    | '/api/agent-sale'
     | '/app/inbox'
     | '/app/more'
     | '/app/record'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/control-panel'
+    | '/api/agent-sale'
     | '/app/inbox'
     | '/app/more'
     | '/app/record'
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   ControlPanelRoute: typeof ControlPanelRoute
+  ApiAgentSaleRoute: typeof ApiAgentSaleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -214,6 +227,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent-sale': {
+      id: '/api/agent-sale'
+      path: '/api/agent-sale'
+      fullPath: '/api/agent-sale'
+      preLoaderRoute: typeof ApiAgentSaleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -336,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   ControlPanelRoute: ControlPanelRoute,
+  ApiAgentSaleRoute: ApiAgentSaleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
