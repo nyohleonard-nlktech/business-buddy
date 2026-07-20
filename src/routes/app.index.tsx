@@ -55,6 +55,13 @@ function ProductsPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [active!.business_id]);
 
+  useEffect(() => {
+    const refreshAfterAgent = () => { void load(); };
+    window.addEventListener("stockdesk:agent-complete", refreshAfterAgent);
+    return () => window.removeEventListener("stockdesk:agent-complete", refreshAfterAgent);
+    /* eslint-disable-next-line */
+  }, [active!.business_id, online]);
+
   const displayed = useMemo(
     () => products.map(p => {
       const d = deltas.get(p.id) ?? 0;
