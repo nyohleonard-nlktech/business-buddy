@@ -84,7 +84,8 @@ function Landing() {
       </main>
 
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} StockDesk
+        <div>© {new Date().getFullYear()} StockDesk</div>
+        <Link to="/feedback" className="mt-2 inline-flex font-medium text-primary hover:underline">Share feedback</Link>
       </footer>
 
       {/* Floating WhatsApp contact button */}
