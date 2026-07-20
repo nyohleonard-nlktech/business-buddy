@@ -1,36 +1,29 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/hooks/use-app";
 import { toast } from "sonner";
-import { AlertTriangle, TrendingUp, PackagePlus } from "lucide-react";
+import { AlertTriangle, Bot, PackagePlus, Send, TrendingUp } from "lucide-react";
+import { computeReportStats, rangeToSince, type ReportProduct, type ReportRange, type ReportTransaction } from "@/lib/report-stats";
+import { askReportsAgent } from "./app.reports.agent.server";
 import { formatMoney } from "./app.index";
 
 export const Route = createFileRoute("/app/reports")({
   component: ReportsPage,
 });
 
-type Txn = {
-  id: string; product_id: string; type: "sale" | "restock" | "adjustment";
-  quantity: number; unit_cost_snapshot: number; unit_sale_price_snapshot: number | null;
-  created_at: string;
-};
-type Prod = { id: string; name: string; cost_price: number; current_stock: number; low_stock_threshold: number; unit: string };
-
 function ReportsPage() {
   const { active } = useApp();
   if (active!.role !== "owner") throw redirect({ to: "/app" });
-  const [range, setRange] = useState<"today" | "7" | "30" | "90" | "all">("30");
-  const [txns, setTxns] = useState<Txn[]>([]);
-  const [products, setProducts] = useState<Prod[]>([]);
+  const [range, setRange] = useState<ReportRange>("30");
+  const [txns, setTxns] = useState<ReportTransaction[]>([]);
+  const [products, setProducts] = useState<ReportProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      let since: string | null = null;
-      if (range === "today") { const d = new Date(); d.setHours(0, 0, 0, 0); since = d.toISOString(); }
-      else if (range !== "all") since = new Date(Date.now() - parseInt(range) * 86400_000).toISOString();
+      const since = rangeToSince(range);
       let q = supabase.from("stock_transactions_owner_view").select("*").eq("business_id", active!.business_id);
       if (since) q = q.gte("created_at", since);
       const [{ data: t, error: e1 }, { data: p, error: e2 }] = await Promise.all([
@@ -38,53 +31,19 @@ function ReportsPage() {
         supabase.from("products_owner_view").select("id,name,cost_price,current_stock,low_stock_threshold,unit").eq("business_id", active!.business_id),
       ]);
       if (e1 || e2) toast.error((e1 || e2)!.message);
-      setTxns((t as Txn[]) ?? []);
-      setProducts((p as Prod[]) ?? []);
+      setTxns((t as ReportTransaction[]) ?? []);
+      setProducts((p as ReportProduct[]) ?? []);
       setLoading(false);
     })();
   }, [active, range]);
 
-  const stats = useMemo(() => {
-    const sales = txns.filter(t => t.type === "sale");
-    let revenue = 0, cost = 0, unitsSold = 0;
-    const perProduct = new Map<string, { units: number; revenue: number; profit: number }>();
-    for (const s of sales) {
-      const rev = (s.unit_sale_price_snapshot ?? 0) * s.quantity;
-      const c = s.unit_cost_snapshot * s.quantity;
-      revenue += rev; cost += c; unitsSold += s.quantity;
-      const cur = perProduct.get(s.product_id) ?? { units: 0, revenue: 0, profit: 0 };
-      cur.units += s.quantity; cur.revenue += rev; cur.profit += rev - c;
-      perProduct.set(s.product_id, cur);
-    }
-    const valuation = products.reduce((sum, p) => sum + p.cost_price * p.current_stock, 0);
-    const top = [...perProduct.entries()]
-      .map(([pid, v]) => ({ ...v, name: products.find(p => p.id === pid)?.name ?? "Unknown" }))
-      .sort((a, b) => b.revenue - a.revenue).slice(0, 10);
-    // daily trend last N days
-    const days = range === "today" ? 1 : range === "7" ? 7 : range === "30" ? 30 : range === "90" ? 90 : 30;
-    const byDay: { day: string; rev: number }[] = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      byDay.push({ day: key, rev: 0 });
-    }
-    const dayMap = new Map(byDay.map(x => [x.day, x]));
-    for (const s of sales) {
-      const key = new Date(s.created_at).toISOString().slice(0, 10);
-      const bucket = dayMap.get(key);
-      if (bucket) bucket.rev += (s.unit_sale_price_snapshot ?? 0) * s.quantity;
-    }
-    const maxRev = Math.max(1, ...byDay.map(d => d.rev));
-    const lowStock = products.filter(p => p.current_stock <= p.low_stock_threshold && p.current_stock >= 0);
-    const negativeStock = products.filter(p => p.current_stock < 0);
-    return { revenue, profit: revenue - cost, unitsSold, valuation, top, byDay, maxRev, lowStock, negativeStock };
-  }, [txns, products, range]);
+  const stats = useMemo(() => computeReportStats(txns, products, range), [txns, products, range]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold">Dashboard</h1>
-        <select value={range} onChange={(e) => setRange(e.target.value as any)} className="rounded-md border border-input bg-card px-2 py-2 text-sm tap-target">
+        <select value={range} onChange={(e) => setRange(e.target.value as ReportRange)} className="rounded-md border border-input bg-card px-2 py-2 text-sm tap-target">
           <option value="today">Today</option>
           <option value="7">7 days</option>
           <option value="30">30 days</option>
@@ -92,6 +51,8 @@ function ReportsPage() {
           <option value="all">All time</option>
         </select>
       </div>
+
+      <ReportsAgent businessId={active!.business_id} />
 
       {loading ? <div className="text-muted-foreground">Loading…</div> : (
         <>
@@ -183,6 +144,56 @@ function ReportsPage() {
         </>
       )}
     </div>
+  );
+}
+
+function ReportsAgent({ businessId }: { businessId: string }) {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [asking, setAsking] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    const q = question.trim();
+    if (!q) return;
+    setAsking(true);
+    setAnswer("");
+    try {
+      const result = await askReportsAgent({ data: { businessId, question: q } });
+      setAnswer(result.answer);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not answer that question";
+      toast.error(message);
+    } finally {
+      setAsking(false);
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-border bg-card p-3 mb-4">
+      <div className="flex items-start gap-2">
+        <div className="rounded-full bg-primary/10 p-2 text-primary"><Bot className="h-5 w-5" /></div>
+        <div>
+          <h2 className="font-semibold">Ask your reports</h2>
+          <p className="text-xs text-muted-foreground">Owner-only. Try “how much profit today?” or “what's my best-selling product this week?”</p>
+        </div>
+      </div>
+      <form onSubmit={submit} className="mt-3 flex gap-2">
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Ask a business question…"
+          className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm"
+          maxLength={500}
+          disabled={asking}
+        />
+        <button type="submit" disabled={asking || !question.trim()} className="tap-target rounded-lg bg-primary px-3 py-2 text-primary-foreground disabled:opacity-60" aria-label="Ask reports">
+          <Send className="h-5 w-5" />
+        </button>
+      </form>
+      {asking && <div className="mt-3 text-sm text-muted-foreground">Checking your report data…</div>}
+      {answer && <div className="mt-3 whitespace-pre-wrap rounded-lg bg-muted p-3 text-sm leading-relaxed">{answer}</div>}
+    </section>
   );
 }
 
