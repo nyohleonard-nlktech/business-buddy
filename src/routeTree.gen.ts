@@ -13,6 +13,7 @@ import { Route as ControlPanelRouteImport } from './routes/control-panel'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppFeedbackRouteImport } from './routes/app.feedback'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
@@ -44,6 +45,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAgentSaleRoute = ApiAgentSaleRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/control-panel': typeof ControlPanelRoute
+  '/feedback': typeof FeedbackRoute
   '/api/agent-sale': typeof ApiAgentSaleRoute
   '/app/feedback': typeof AppFeedbackRoute
   '/app/inbox': typeof AppInboxRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/control-panel': typeof ControlPanelRoute
+  '/feedback': typeof FeedbackRoute
   '/api/agent-sale': typeof ApiAgentSaleRoute
   '/app/feedback': typeof AppFeedbackRoute
   '/app/inbox': typeof AppInboxRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/control-panel': typeof ControlPanelRoute
+  '/feedback': typeof FeedbackRoute
   '/api/agent-sale': typeof ApiAgentSaleRoute
   '/app/feedback': typeof AppFeedbackRoute
   '/app/inbox': typeof AppInboxRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/control-panel'
+    | '/feedback'
     | '/api/agent-sale'
     | '/app/feedback'
     | '/app/inbox'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/control-panel'
+    | '/feedback'
     | '/api/agent-sale'
     | '/app/feedback'
     | '/app/inbox'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/control-panel'
+    | '/feedback'
     | '/api/agent-sale'
     | '/app/feedback'
     | '/app/inbox'
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   ControlPanelRoute: typeof ControlPanelRoute
+  FeedbackRoute: typeof FeedbackRoute
   ApiAgentSaleRoute: typeof ApiAgentSaleRoute
 }
 
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/agent-sale': {
@@ -377,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   ControlPanelRoute: ControlPanelRoute,
+  FeedbackRoute: FeedbackRoute,
   ApiAgentSaleRoute: ApiAgentSaleRoute,
 }
 export const routeTree = rootRouteImport
