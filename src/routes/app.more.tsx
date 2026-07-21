@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useApp } from "@/hooks/use-app";
 import { supabase } from "@/integrations/supabase/client";
-import { PackagePlus, ScrollText, ClipboardList, Settings as SettingsIcon, SlidersHorizontal, Inbox } from "lucide-react";
+import { PackagePlus, ScrollText, ClipboardList, Settings as SettingsIcon, SlidersHorizontal, Inbox, MessageSquareText } from "lucide-react";
 
 export const Route = createFileRoute("/app/more")({
   component: MorePage,
@@ -28,6 +28,7 @@ function MorePage() {
     { to: "/app/record", Icon: SlidersHorizontal, label: "Adjust stock", desc: "Fix a count (spoilage, correction)" },
     { to: "/app/sales-log", Icon: ScrollText, label: "Sales log", desc: "Every past sale" },
     ...(isOwner ? [{ to: "/app/restocks-log", Icon: ClipboardList, label: "Restock log", desc: "Every past restock" }] : []),
+    { to: "/app/feedback", Icon: MessageSquareText, label: "Feedback", desc: "Share ideas or report a problem" },
     ...(isOwner ? [{ to: "/app/settings", Icon: SettingsIcon, label: "Settings", desc: "Team, invite code" }] : []),
   ];
   return (
